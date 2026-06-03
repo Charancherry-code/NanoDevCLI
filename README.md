@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/banner.svg" alt="NanoDevCLI" width="100%" />
+<img src="./Nano-dev.png" alt="NanoDevCLI" width="720" />
 
 ### A tiny AI coding agent that lives in your terminal
 
