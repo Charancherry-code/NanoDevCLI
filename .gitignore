@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment variables (never commit your API key)
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Agent sandbox / scratch workspace (where the agent edits files during demos)
+workspace/
+
+# nano-dev persistent memory (per working dir)
+.nano/

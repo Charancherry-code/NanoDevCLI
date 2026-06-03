@@ -1,0 +1,7 @@
+{
+  "name": "nano-dev-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless proxy that holds the shared Groq key for nano-dev's free default tier.",
+  "type": "module"
+}

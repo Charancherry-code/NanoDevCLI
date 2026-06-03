@@ -1,0 +1,8 @@
+# Never publish secrets or scratch data, even if the files whitelist changes.
+.env
+.env.example
+.env.local
+workspace/
+.nano/
+tests/
+*.log
