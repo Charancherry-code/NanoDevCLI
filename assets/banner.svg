@@ -23,7 +23,7 @@
   <text x="430" y="138" text-anchor="middle"
         font-family="ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace"
         font-size="86" font-weight="700" letter-spacing="4"
-        fill="url(#teal)">nano-dev</text>
+        fill="url(#teal)">NanoDevCLI</text>
 
   <!-- prompt line -->
   <text x="430" y="188" text-anchor="middle"
