@@ -1,8 +1,17 @@
 # Dependencies
 node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+.vercel
 
 # Environment variables (never commit your API key)
 .env
+.env.local
+**/.env
+**/.env.local
 
 # Logs
 *.log
