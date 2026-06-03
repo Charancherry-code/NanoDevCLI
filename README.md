@@ -1,17 +1,48 @@
-# nano-dev
+<div align="center">
 
-A tiny **AI coding agent that lives in your terminal**. Describe a task in plain
-English and nano-dev reads, writes, edits, and runs your code by calling real
-tools in a loop — until it's done.
+```
+███╗   ██╗ █████╗ ███╗   ██╗ ██████╗     ██████╗ ███████╗██╗   ██╗
+████╗  ██║██╔══██╗████╗  ██║██╔═══██╗    ██╔══██╗██╔════╝██║   ██║
+██╔██╗ ██║███████║██╔██╗ ██║██║   ██║    ██║  ██║█████╗  ██║   ██║
+██║╚██╗██║██╔══██║██║╚██╗██║██║   ██║    ██║  ██║██╔══╝  ╚██╗ ██╔╝
+██║ ╚████║██║  ██║██║ ╚████║╚██████╔╝    ██████╔╝███████╗ ╚████╔╝
+╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚═════╝ ╚══════╝  ╚═══╝
+```
 
-[![npm](https://img.shields.io/npm/v/nano-dev?color=4fd1c5)](https://www.npmjs.com/package/nano-dev)
+### A tiny AI coding agent that lives in your terminal
+
+Describe a task in plain English — nano-dev reads, writes, edits, and runs your code
+by calling real tools in a loop, until it's done.
+
+[![npm version](https://img.shields.io/npm/v/nano-dev?color=4fd1c5&label=npm)](https://www.npmjs.com/package/nano-dev)
+[![license](https://img.shields.io/npm/l/nano-dev?color=4fd1c5)](./LICENSE)
+[![node](https://img.shields.io/node/v/nano-dev?color=4fd1c5)](https://nodejs.org)
+
+[Install](#install) · [Usage](#usage) · [How it works](#how-it-works) · [Commands](#commands) · [Architecture](#architecture)
+
+</div>
+
+---
+
+## Install
 
 ```bash
 npm install -g nano-dev
 nano-dev
 ```
 
-> The LLM is the **brain**. The tools are the **hands**. The safety layer is the **guardrails**.
+That's it. On first launch you pick a tier (see [Setup](#setup)) and you're coding.
+
+---
+
+## Usage
+
+```bash
+nano-dev                          # interactive session (chat with the agent)
+nano-dev "create an express api"  # one-shot: run a single task and exit
+nano-dev --here "fix the bug"     # work in the CURRENT folder
+nano-dev --dir ./my-app "..."     # work in a chosen folder
+```
 
 ```
 you › build a CLI weather app
@@ -23,59 +54,42 @@ agent › Done — try: node weather.js <city>
 tokens: 2,418 (in 2,090, out 328)
 ```
 
----
-
-## Why this project
-
-Modern coding assistants all share one core idea: an **agentic tool-calling
-loop**. nano-dev implements that loop from scratch in plain Node.js, so you can
-see exactly how an AI agent decides what to do and acts on it — no magic.
-
-It demonstrates the skills most in demand for AI roles in 2026: **agent
-building, LLM function calling, tool design, persistent memory, and production
-safety + deployment thinking.**
+By default the agent works inside a sandboxed `workspace/` folder. Use `--here`
+or `--dir` to point it at a real project.
 
 ---
 
-## Repository layout
+## Setup
 
-This is a monorepo with three deployable pieces:
+On first run, choose how to power the agent:
 
-```
-.
-├── server/   # the nano-dev CLI  → published to npm
-├── proxy/    # serverless key proxy for the free tier → deployed to Vercel
-└── client/   # the landing page (React + Vite) → deployed to Vercel
-```
+| Option | What you get |
+| ------ | ------------ |
+| **Use the default key** | Start instantly, no signup. Free, capped at 10,000 tokens. |
+| **Bring your own key** | Gemini or any OpenAI-compatible endpoint. Unlimited. |
 
-| Piece | What it is | Ships to |
-|-------|-----------|----------|
-| `server/` | The CLI agent (tools, loop, safety, memory) | [npm](https://www.npmjs.com/package/nano-dev) |
-| `proxy/` | Holds the shared API key server-side for the free tier | Vercel |
-| `client/` | Marketing/landing page | Vercel |
+Your choice is saved to `~/.nano-dev/config.json`. Switch anytime with `/config`.
+
+To bring your own key, grab one from
+[Google AI Studio](https://aistudio.google.com/apikey) (Gemini) or any
+OpenAI-compatible provider (OpenAI, Groq, etc.).
 
 ---
 
-## Quick start
+## Features
 
-```bash
-npm install -g nano-dev
-nano-dev                          # interactive session
-nano-dev "create an express api"  # one-shot task
-nano-dev --here "fix the bug"     # work in the current folder
-```
-
-On first launch you choose:
-
-1. **Free default tier** — start instantly, capped at 10,000 tokens (routes
-   through the hosted proxy, no key needed).
-2. **Bring your own key** — Gemini or any OpenAI-compatible endpoint. Unlimited.
-
-Switch anytime with `/config`.
+- **6 tools** — `read_file`, `write_file`, `edit_file` (surgical), `delete_file`, `list_files`, `run_command`
+- **Self-correcting** — reads its own errors and fixes them, then re-runs
+- **Safety first** — sandboxed to one folder, destructive commands blocked, risky ones need approval, hard step cap
+- **Persistent memory** — sessions resume across launches; a `NANO.md` file holds project context
+- **Streaming + token tracking** — watch output stream live, with a per-session token counter
+- **Model-agnostic** — Gemini or any OpenAI-compatible endpoint, swappable without code changes
 
 ---
 
-## How it works — the agent loop
+## How it works
+
+The whole tool is one idea repeated until the task is done — the **agent loop**:
 
 ```
         You type a task in plain English
@@ -83,42 +97,62 @@ Switch anytime with `/config`.
                        ▼
    ┌──────────────────────────────────────────────┐
    │                THE AGENT LOOP                  │
-   │  1. Send task + tools to the LLM               │
-   │  2. LLM replies with a tool call               │
-   │  3. Run the tool                               │
-   │  4. Send the result back                       │
-   │  5. Repeat until done (capped by MAX_STEPS)    │
+   │   1. Send the task + tools to the LLM          │
+   │   2. The LLM replies with a tool call          │
+   │   3. Run the tool                              │
+   │   4. Send the result back                      │
+   │   5. Repeat until done (capped by MAX_STEPS)   │
    └───────────────┬───────────────────┬────────────┘
                    ▼                   ▼
-            LLM client            Tools (read / write /
-         (function calling)        edit / delete / list / run)
+            LLM client            Tools  (read · write · edit
+         (function calling)              · delete · list · run)
                                         │
                                         ▼
                                   Safety layer
                           (sandbox · confirm · step cap)
 ```
 
-## Features
+> The LLM is the **brain**. The tools are the **hands**. The safety layer is the **guardrails**.
 
-- **6 tools** — `read_file`, `write_file`, `edit_file` (surgical), `delete_file`, `list_files`, `run_command`
-- **Self-correcting** — reads its own errors and fixes them
-- **Safety** — sandboxed to one folder, destructive commands blocked, risky ones need approval, hard step cap
-- **Memory** — sessions persist across launches; a `NANO.md` file holds project context
-- **Streaming + token tracking** — live output and a per-session token counter
-- **Any model** — Gemini or any OpenAI-compatible endpoint; provider-agnostic core
+---
 
-## In-session commands
+## Commands
+
+Type `/` and press **Tab** to autocomplete.
 
 | Command | Description |
-|---------|-------------|
+| ------- | ----------- |
 | `/help` | Show all commands |
 | `/tools` | List the agent's tools |
-| `/model` | Show active model + provider |
+| `/model` | Show the active model + provider |
 | `/config` | Switch default key / your own key |
 | `/tokens` | Tokens used this session |
 | `/remember` | Save a note to project memory (NANO.md) |
 | `/clear` | Reset the conversation |
 | `/exit` | Quit |
+
+---
+
+## Architecture
+
+This is a monorepo with three deployable pieces:
+
+```
+.
+├── server/   # the nano-dev CLI            → published to npm
+├── proxy/    # serverless key proxy         → deployed to Vercel
+└── client/   # the landing page (React)     → deployed to Vercel
+```
+
+| Piece | Role | Ships to |
+| ----- | ---- | -------- |
+| `server/` | The CLI agent: loop, tools, safety, memory | [npm](https://www.npmjs.com/package/nano-dev) |
+| `proxy/` | Holds the shared API key server-side for the free tier | Vercel |
+| `client/` | Marketing / landing page | Vercel |
+
+The free-tier key never ships inside the npm package — the CLI calls the proxy,
+which injects the key server-side and enforces limits. See
+[`proxy/README.md`](./proxy/README.md) for deploy steps.
 
 ---
 
@@ -132,9 +166,14 @@ npm start                # or: node bin/index.js "your task"
 npm test                 # run the test suite
 ```
 
-The free-tier default key never ships in the package — it lives in the `proxy/`
-deployment's environment variables. See `proxy/README.md` for deploy steps.
+---
 
 ## License
 
-MIT
+[MIT](./LICENSE)
+
+<div align="center">
+
+Built with the agent loop · [npm](https://www.npmjs.com/package/nano-dev) · [GitHub](https://github.com/Charancherry-code/NanoDevCLI)
+
+</div>
