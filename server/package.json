@@ -26,6 +26,15 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Charancherry-code/NanoDevCLI.git",
+    "directory": "server"
+  },
+  "homepage": "https://github.com/Charancherry-code/NanoDevCLI#readme",
+  "bugs": {
+    "url": "https://github.com/Charancherry-code/NanoDevCLI/issues"
+  },
   "engines": {
     "node": ">=18"
   },

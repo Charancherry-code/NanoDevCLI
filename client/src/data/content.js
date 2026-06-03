@@ -5,7 +5,7 @@
  */
 
 export const NPM_INSTALL = "npm install -g nano-dev";
-export const GITHUB_URL = "https://github.com/your-username/nano-dev";
+export const GITHUB_URL = "https://github.com/Charancherry-code/NanoDevCLI";
 export const NPM_URL = "https://www.npmjs.com/package/nano-dev";
 
 export const FEATURES = [
