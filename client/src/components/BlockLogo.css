@@ -1,0 +1,11 @@
+.block-logo {
+  color: var(--accent);
+  font-size: clamp(5px, 1.45vw, 11px);
+  line-height: 1.05;
+  letter-spacing: 0;
+  white-space: pre;
+  overflow: hidden;
+  user-select: none;
+  text-shadow: 0 0 18px rgba(79, 209, 197, 0.25);
+  margin: 0;
+}

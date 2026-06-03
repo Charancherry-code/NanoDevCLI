@@ -1,0 +1,40 @@
+.install-card {
+  position: relative;
+  text-align: center;
+  background: var(--bg-1);
+  border: 1px solid var(--hair);
+  border-radius: 16px;
+  padding: 72px 32px;
+  overflow: hidden;
+}
+/* faint top hairline highlight */
+.install-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+}
+
+.install-title {
+  font-size: clamp(30px, 4.5vw, 46px);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  margin: var(--s4) 0 var(--s4);
+}
+.install .lede {
+  margin-inline: auto;
+}
+
+.install-actions {
+  display: flex;
+  justify-content: center;
+  margin: var(--s6) 0 var(--s5);
+}
+.install-links {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}

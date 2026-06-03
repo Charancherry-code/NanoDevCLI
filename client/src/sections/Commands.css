@@ -1,0 +1,72 @@
+.commands-inner {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.inline-code {
+  background: var(--panel-2);
+  border: 1px solid var(--hair);
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+.commands-copy .h2 {
+  margin: var(--s4) 0 var(--s4);
+}
+
+.commands-panel {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+.commands-bar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--hair);
+}
+
+.commands-list {
+  padding: 8px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+.commands-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+.commands-list li:not(:last-child) {
+  border-bottom: 1px solid var(--hair);
+}
+.commands-list li:hover {
+  background: var(--panel-2);
+}
+.cmd-name {
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 92px;
+}
+.cmd-desc {
+  color: var(--text-2);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+}
+
+@media (max-width: 880px) {
+  .commands-inner {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
