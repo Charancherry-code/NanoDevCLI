@@ -8,6 +8,12 @@ import chalk from "chalk";
 import ora from "ora";
 import { COMMANDS } from "./commands.js";
 
+// Brand color — the same teal used on the landing page (#4fd1c5).
+// Using a hex keeps it consistent across terminals instead of the bluish
+// default "cyan" ANSI color.
+const teal = chalk.hex("#4fd1c5");
+const tealBold = chalk.hex("#4fd1c5").bold;
+
 // Full-size ASCII banner (needs ~68 cols).
 const LOGO_FULL = [
   "███╗   ██╗ █████╗ ███╗   ██╗ ██████╗     ██████╗ ███████╗██╗   ██╗",
@@ -86,18 +92,18 @@ function boxCenter(text, width, color = chalk.bold.white) {
   const total = width - text.length;
   const left = Math.max(0, Math.floor(total / 2));
   const right = Math.max(0, total - left);
-  return chalk.cyan("  │") + " ".repeat(left) + color(text) + " ".repeat(right) + chalk.cyan("│");
+  return teal("  │") + " ".repeat(left) + color(text) + " ".repeat(right) + teal("│");
 }
 
 // Render one left-aligned line inside the box.
 function boxLine(text, width, color = chalk.gray) {
   const pad = Math.max(0, width - 1 - text.length);
-  return chalk.cyan("  │ ") + color(text) + " ".repeat(pad) + chalk.cyan("│");
+  return teal("  │ ") + color(text) + " ".repeat(pad) + teal("│");
 }
 
 export const ui = {
   banner(title, subtitle) {
-    console.log(chalk.bold.cyan(`\n${title}`));
+    console.log(tealBold(`\n${title}`));
     if (subtitle) console.log(chalk.gray(subtitle));
   },
 
@@ -109,7 +115,7 @@ export const ui = {
   // First-run onboarding intro with the two options.
   onboardIntro(limit) {
     console.log("");
-    for (const line of LOGO_FULL) console.log("  " + chalk.cyan(line));
+    for (const line of LOGO_FULL) console.log("  " + teal(line));
     console.log(chalk.gray("\n  Welcome! Let's set up nano-dev (one time).\n"));
 
     console.log("  " + chalk.bold.white("1) Bring your own API key"));
@@ -145,9 +151,9 @@ export const ui = {
     if (w >= 70) logo = LOGO_FULL;
     else if (w >= 40) logo = LOGO_SMALL;
     if (logo) {
-      for (const line of logo) console.log("  " + chalk.cyan(line));
+      for (const line of logo) console.log("  " + teal(line));
     } else {
-      console.log("  " + chalk.bold.cyan("nano-dev"));
+      console.log("  " + tealBold("nano-dev"));
     }
 
     const tagline = "a tiny AI coding agent that lives in your terminal";
@@ -155,12 +161,12 @@ export const ui = {
 
     const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
 
-    console.log(chalk.cyan("  ┌" + "─".repeat(bw) + "┐"));
+    console.log(teal("  ┌" + "─".repeat(bw) + "┐"));
     console.log(boxCenter("Did you know?", bw, chalk.bold.white));
     console.log(boxLine("", bw));
     for (const l of wrap(tip, bw - 4)) console.log(boxLine(l, bw));
     console.log(boxLine("", bw));
-    console.log(chalk.cyan("  └" + "─".repeat(bw) + "┘"));
+    console.log(teal("  └" + "─".repeat(bw) + "┘"));
 
     // Command hints: full on wide terminals, stacked on narrow ones.
     if (w >= 56) {
@@ -194,7 +200,7 @@ export const ui = {
   help() {
     console.log(chalk.gray("\n  Commands"));
     for (const c of COMMANDS) {
-      console.log("    " + chalk.cyan(c.name.padEnd(8)) + chalk.gray(c.description));
+      console.log("    " + teal(c.name.padEnd(8)) + chalk.gray(c.description));
     }
     console.log(
       chalk.gray("\n  Tip: type ") + chalk.white("/") + chalk.gray(" then press ") +
@@ -206,7 +212,7 @@ export const ui = {
   toolsList(tools) {
     console.log(chalk.gray("\n  Tools the agent can use"));
     for (const t of tools) {
-      console.log("    " + chalk.cyan(t.name.padEnd(14)) + chalk.gray(t.description));
+      console.log("    " + teal(t.name.padEnd(14)) + chalk.gray(t.description));
     }
     console.log("");
   },
@@ -220,7 +226,7 @@ export const ui = {
 
   agentLabel(text) {
     console.log(chalk.green("\n  agent ") + chalk.gray("›"));
-    console.log("  " + chalk.cyan(text));
+    console.log("  " + teal(text));
   },
 
   // Streaming output: print the agent label once, then stream tokens.
@@ -229,7 +235,7 @@ export const ui = {
   },
   streamToken(t) {
     // Indent new lines so streamed text stays aligned under the label.
-    process.stdout.write(chalk.cyan(t.replace(/\n/g, "\n  ")));
+    process.stdout.write(teal(t.replace(/\n/g, "\n  ")));
   },
   streamEnd() {
     process.stdout.write("\n");
@@ -288,7 +294,7 @@ export const ui = {
         verb = name; target = JSON.stringify(a);
     }
     process.stdout.write(
-      "  " + chalk.cyan("•") + " " + chalk.white(verb) + " " + chalk.gray(target ?? "")
+      "  " + teal("•") + " " + chalk.white(verb) + " " + chalk.gray(target ?? "")
     );
   },
 
@@ -327,7 +333,7 @@ export const ui = {
   },
 
   summary(text) {
-    console.log("\n" + chalk.cyan(text));
+    console.log("\n" + teal(text));
   },
 
   done(msg) {
