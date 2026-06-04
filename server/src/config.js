@@ -19,7 +19,7 @@ function resolve() {
   // Base from env / .env.
   const cfg = {
     provider: (process.env.LLM_PROVIDER || "gemini").toLowerCase(),
-    maxSteps: Number(process.env.MAX_STEPS || 15),
+    maxSteps: Number(process.env.MAX_STEPS || 8),
     mode: null, // "own" | "default" | null (dev via .env)
 
     gemini: {

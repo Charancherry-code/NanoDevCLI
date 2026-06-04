@@ -4,14 +4,12 @@
  * during onboarding. This ships inside the npm package.
  *
  * SECURITY: there is NO raw API key here. The default tier routes through a
- * serverless proxy (see /proxy) that holds the real Groq key server-side and
+ * serverless proxy (see /proxy) that holds the real key server-side and
  * enforces limits. The CLI only knows the public proxy URL, so nothing secret
  * ships in the npm package.
  *
- * The proxy speaks the OpenAI chat-completions protocol, so the existing
- * "openai" provider works against it unchanged.
- *
- * >>> Replace DEFAULT_BASE_URL with your deployed proxy URL (+ /v1). <<<
+ * The proxy currently forwards to GitHub Models, but the CLI doesn't care —
+ * it just talks the OpenAI chat-completions protocol to the proxy.
  */
 
 export const DEFAULT_CONFIG = {
@@ -20,8 +18,9 @@ export const DEFAULT_CONFIG = {
   // No real key needed — the proxy injects it server-side. A placeholder
   // keeps the OpenAI SDK happy (it requires a non-empty apiKey string).
   apiKey: "nano-dev-default",
-  model: "llama-3.3-70b-versatile",
+  // Must be one of the proxy's ALLOWED_MODELS (GitHub Models naming).
+  model: "openai/gpt-4.1",
 };
 
 // Free-tier token budget for users on the shared default tier.
-export const DEFAULT_TOKEN_LIMIT = 10000;
+export const DEFAULT_TOKEN_LIMIT = 50000;

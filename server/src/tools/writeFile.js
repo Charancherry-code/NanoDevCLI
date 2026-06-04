@@ -19,7 +19,10 @@ export const writeFileTool = {
       },
       content: {
         type: "string",
-        description: "The full text content to write into the file.",
+        description:
+          "The full text content to write. Must be properly formatted multi-line " +
+          "source code with real newlines and 2-space indentation — never put the " +
+          "whole file on one line.",
       },
     },
     required: ["path", "content"],

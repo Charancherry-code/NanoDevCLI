@@ -1,6 +1,6 @@
 {
   "name": "nano-dev",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A minimal CLI AI coding agent: type a task in plain English and it reads, writes, and runs code by letting an LLM call tools in a loop.",
   "type": "module",
   "bin": {

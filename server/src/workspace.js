@@ -9,14 +9,11 @@
 import path from "node:path";
 import fs from "node:fs";
 
-// The default sandbox folder used when the user doesn't choose a directory.
-const DEFAULT_WORKSPACE = path.resolve(
-  process.env.AGENT_WORKSPACE || path.join(process.cwd(), "workspace")
-);
+// By default the agent works in the directory the user launched it from
+// (like Claude Code / aider). --dir can point it somewhere else.
+const DEFAULT_WORKSPACE = path.resolve(process.env.AGENT_WORKSPACE || process.cwd());
 
-// The workspace defaults to ./workspace; --here / --dir can change it.
 let workspaceRoot = DEFAULT_WORKSPACE;
-let isDefaultSandbox = true;
 
 export function getWorkspaceRoot() {
   return workspaceRoot;
@@ -24,29 +21,16 @@ export function getWorkspaceRoot() {
 
 export function setWorkspaceRoot(dir) {
   workspaceRoot = path.resolve(dir);
-  isDefaultSandbox = workspaceRoot === DEFAULT_WORKSPACE;
   return workspaceRoot;
 }
 
 /**
  * Make sure the workspace folder exists before the agent runs.
- *
- * Only the default sandbox gets a seeded CommonJS package.json (so generated
- * `.js` files using require()/module.exports run as expected). When the user
- * points the agent at a real project with --here/--dir, we never inject files.
+ * We never inject files into the user's folder — the agent only creates what
+ * the task asks for.
  */
 export function ensureWorkspace() {
   fs.mkdirSync(workspaceRoot, { recursive: true });
-  if (!isDefaultSandbox) return workspaceRoot;
-
-  const pkgPath = path.join(workspaceRoot, "package.json");
-  if (!fs.existsSync(pkgPath)) {
-    fs.writeFileSync(
-      pkgPath,
-      JSON.stringify({ name: "agent-workspace", version: "1.0.0", private: true }, null, 2) + "\n",
-      "utf8"
-    );
-  }
   return workspaceRoot;
 }
 

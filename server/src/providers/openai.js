@@ -30,41 +30,72 @@ function getClient() {
   return client;
 }
 
-/** Convert our internal message format into OpenAI chat messages. */
+/** Convert our internal message format into OpenAI chat messages.
+ *
+ * Token optimization: the agent loop re-sends the whole conversation on every
+ * step, so large file contents (from read/write/edit results and tool-call
+ * args) would be re-billed again and again. We keep the most recent messages
+ * verbatim, but in OLDER messages we truncate big strings — the model has
+ * already acted on them and rarely needs the full bytes again.
+ */
+const RECENT_VERBATIM = 6; // keep this many trailing messages full
+const OLD_FIELD_MAX = 220; // max chars for big strings in older messages
+
+function truncate(str, max) {
+  if (typeof str !== "string" || str.length <= max) return str;
+  return str.slice(0, max) + `\n… [${str.length - max} chars trimmed to save tokens]`;
+}
+
+// Shrink large string values inside a tool-args object (content, new_text, etc.).
+function shrinkArgs(args) {
+  const out = {};
+  for (const [k, v] of Object.entries(args || {})) {
+    out[k] = typeof v === "string" ? truncate(v, OLD_FIELD_MAX) : v;
+  }
+  return out;
+}
+
 function toOpenAIMessages(messages, systemPrompt) {
   const out = [];
   if (systemPrompt) out.push({ role: "system", content: systemPrompt });
 
-  for (const m of messages) {
+  const cutoff = messages.length - RECENT_VERBATIM; // older than this => compact
+
+  messages.forEach((m, i) => {
+    const old = i < cutoff;
+
     if (m.role === "tool") {
-      // Result of a tool call we send back, keyed by the call id.
+      let content = JSON.stringify(m.response ?? {});
+      if (old) content = truncate(content, OLD_FIELD_MAX);
       out.push({
         role: "tool",
         tool_call_id: m.toolCallId ?? m.name,
-        content: JSON.stringify(m.response ?? {}),
+        content,
       });
-      continue;
+      return;
     }
 
     if (m.role === "model" && m.toolCalls?.length) {
-      // The assistant turn that requested tool calls.
       out.push({
         role: "assistant",
         content: m.text || null,
         tool_calls: m.toolCalls.map((tc) => ({
           id: tc.id ?? tc.name,
           type: "function",
-          function: { name: tc.name, arguments: JSON.stringify(tc.args ?? {}) },
+          function: {
+            name: tc.name,
+            arguments: JSON.stringify(old ? shrinkArgs(tc.args) : tc.args ?? {}),
+          },
         })),
       });
-      continue;
+      return;
     }
 
     out.push({
       role: m.role === "model" ? "assistant" : "user",
-      content: m.text ?? "",
+      content: old ? truncate(m.text ?? "", OLD_FIELD_MAX) : m.text ?? "",
     });
-  }
+  });
   return out;
 }
 
@@ -118,7 +149,7 @@ export async function chat(messages, tools, { systemPrompt, onToken } = {}) {
         tools: toOpenAITools(tools),
         tool_choice: "auto",
       });
-      return parseCompletion(completion);
+      return parseCompletion(completion, tools);
     } catch (err) {
       if (isRateLimit(err) && attempt < maxRetries) {
         const waitS = 2 ** attempt;
@@ -137,12 +168,57 @@ export async function chat(messages, tools, { systemPrompt, onToken } = {}) {
   }
 }
 
+/**
+ * Some weaker models emit a tool call as plain TEXT instead of a real
+ * function_call (e.g. `<function(write_file)>{"path":...}` or
+ * `{"name":"write_file","arguments":{...}}`). This salvages those so the
+ * agent still works. Returns an array of { name, args } or [].
+ */
+function parseTextToolCalls(text, tools) {
+  if (!text) return [];
+  const names = tools.map((t) => t.name).join("|");
+  const out = [];
+
+  // Pattern A: <function(name)>{...json...}  or  <function=name>{...}
+  const tagRe = new RegExp(`<function[(:=]\\s*(${names})\\s*\\)?>\\s*({[\\s\\S]*?})`, "g");
+  // Pattern B: {"name":"tool","arguments":{...}}  (arguments may be obj or string)
+  const jsonRe = /{[\s\S]*?"name"\s*:\s*"([\w-]+)"[\s\S]*?"(?:arguments|args|parameters)"\s*:\s*({[\s\S]*?})\s*}/g;
+
+  let m;
+  while ((m = tagRe.exec(text)) !== null) {
+    const name = m[1];
+    let args = {};
+    try {
+      args = JSON.parse(m[2]);
+    } catch {
+      // the captured object might itself wrap { "path":..., "content":... }
+    }
+    // Tag form sometimes wraps {"path":...} directly; if it has name/arguments, unwrap.
+    if (args && (args.arguments || args.args)) args = args.arguments || args.args;
+    out.push({ name, args: args || {} });
+  }
+  if (out.length) return out;
+
+  while ((m = jsonRe.exec(text)) !== null) {
+    const name = m[1];
+    if (!tools.some((t) => t.name === name)) continue;
+    let args = {};
+    try {
+      args = JSON.parse(m[2]);
+    } catch {
+      args = {};
+    }
+    out.push({ name, args });
+  }
+  return out;
+}
+
 /** Parse a non-streamed completion into the normalized shape. */
-function parseCompletion(completion) {
+function parseCompletion(completion, tools = []) {
   const choice = completion.choices?.[0];
   const msg = choice?.message ?? {};
 
-  const toolCalls = (msg.tool_calls ?? [])
+  let toolCalls = (msg.tool_calls ?? [])
     .filter((tc) => tc.type === "function")
     .map((tc) => {
       let args = {};
@@ -153,6 +229,14 @@ function parseCompletion(completion) {
       }
       return { id: tc.id, name: tc.function.name, args };
     });
+
+  // Fallback: model wrote the tool call as text instead of a real call.
+  if (toolCalls.length === 0 && msg.content) {
+    const salvaged = parseTextToolCalls(msg.content, tools);
+    if (salvaged.length) {
+      toolCalls = salvaged.map((c, i) => ({ id: `text-${i}`, ...c }));
+    }
+  }
 
   const text = toolCalls.length === 0 ? msg.content ?? "" : "";
   return { text, toolCalls, usage: normalizeUsage(completion.usage) };
@@ -194,7 +278,7 @@ async function streamChat(openai, messages, tools, systemPrompt, onToken) {
     }
   }
 
-  const toolCalls = toolAcc.filter(Boolean).map((t) => {
+  let toolCalls = toolAcc.filter(Boolean).map((t) => {
     let args = {};
     try {
       args = t.args ? JSON.parse(t.args) : {};
@@ -203,6 +287,14 @@ async function streamChat(openai, messages, tools, systemPrompt, onToken) {
     }
     return { id: t.id, name: t.name, args };
   });
+
+  // Fallback: model streamed the tool call as text instead of a real call.
+  if (toolCalls.length === 0 && text) {
+    const salvaged = parseTextToolCalls(text, tools);
+    if (salvaged.length) {
+      toolCalls = salvaged.map((c, i) => ({ id: `text-${i}`, ...c }));
+    }
+  }
 
   // Some OpenAI-compatible proxies don't return usage while streaming. Fall
   // back to a rough estimate (~4 chars/token) so the token counter still works.

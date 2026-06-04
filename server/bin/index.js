@@ -5,14 +5,13 @@
  * CLI entry point.
  *
  * Usage:
- *   nano-dev                         interactive mode in ./workspace
- *   nano-dev --here                  interactive mode in the CURRENT folder
+ *   nano-dev                         interactive mode in the current folder
  *   nano-dev --dir ./my-app          interactive mode in a chosen folder
- *   nano-dev "create a hello.js"     one-shot in ./workspace
- *   nano-dev --here "fix the bug"    one-shot in the CURRENT folder
+ *   nano-dev "create a hello.js"     one-shot in the current folder
+ *   nano-dev --dir ./app "fix bug"   one-shot in a chosen folder
  *
- * By default the agent works in a sandboxed ./workspace folder. Use --here or
- * --dir to point it at a real project directory instead.
+ * By default the agent works in the folder you launched it from. Use --dir to
+ * point it at a different project directory.
  */
 
 import path from "node:path";
