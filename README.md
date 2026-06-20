@@ -161,7 +161,7 @@ npm test                 # run the test suite
 
 ---
 
-## License...
+## License....
 
 [MIT](./LICENSE)
 
