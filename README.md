@@ -149,7 +149,7 @@ which injects the key server-side and enforces limits. See
 
 ---
 
-## Local development
+## Local development...
 
 ```bash
 cd server
