@@ -34,7 +34,7 @@ That's it. On first launch you pick a tier (see [Setup](#setup)) and you're codi
 nano-dev                          # interactive session (chat with the agent)
 nano-dev "create an express api"  # one-shot: run a single task and exit
 nano-dev --here "fix the bug"     # work in the CURRENT folder
-nano-dev --dir ./my-app "..."     # work in a chosen folder
+nano-dev --dir ./my-app "...."     # work in a chosen folder
 ```
 
 ```
