@@ -80,7 +80,7 @@ OpenAI-compatible provider (OpenAI, Groq, etc.).
 
 ---
 
-## How it works
+## How it works..
 
 The whole tool is one idea repeated until the task is done — the **agent loop**:
 
