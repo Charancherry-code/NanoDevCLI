@@ -24,7 +24,7 @@ npm install -g nano-dev
 nano-dev
 ```
 
-That's it. On first launch you pick a tier (see [Setup](#setup)) and you're coding.
+That's it. On first launch you pick a tier (see [Setup](#setup)) and you're coding...
 
 ---
 
