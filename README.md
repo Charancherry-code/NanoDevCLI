@@ -17,7 +17,7 @@ by calling real tools in a loop, until it's done.
 
 ---
 
-## Install
+## Install...
 
 ```bash
 npm install -g nano-dev
